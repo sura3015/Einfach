@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einfach Code Editor</title>
+    <link rel="stylesheet" href="src/output.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="/icon-512.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-900 text-white">
+    <header class="p-4 bg-gray-800 flex justify-between items-center">
+        <h1>Einfach Code Editor</h1>
+        <div class="flex gap-2">
+            <span class="material-symbols-outlined mt-0.5" style="font-size:37px">
+                code_blocks
+            </span>
+            <select id="langSelect"
+                class="mr-1 border-b border-gray-500 focus:border-indigo-500 py-1 px-2 focus:outline-none bg-gray-700 text-wite rounded-md">
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <option value="java">Java</option>
+                <option value="csharp">C#</option>
+                <option value="cpp">C++</option>
+                <option value="cpp">C</option>
+                <option value="ruby">Ruby</option>
+                <option value="php">PHP</option>
+                <option value="go">Go</option>
+                <option value="typescript">TypeScript</option>
+                <option value="json">JSON</option>
+                <option value="markdown">Markdown</option>
+                <option value="sql">SQL</option>
+                <option value="yaml">YAML</option>
+                <option value="xml">XML</option>
+                <option value="kotlin">Kotlin</option>
+                <option value="swift">Swift</option>
+                <option value="rust">Rust</option>
+                <option value="razor">Razor</option>
+                <option value="perl">Perl</option>
+                <option value="jade">Pug</option>
+                <option value="lua">Lua</option>
+                <option value="bat">Batch</option>
+                <option value="clojure">Clojure</option>
+                <option value="fsharp">F#</option>
+                <option value="dart">Dart</option>
+                <option value="r">R</option>
+                <option value="objective-c">Objective-C</option>
+                <option value="vb">Visual Basic</option>
+                <option value="shell">Shell Script</option>
+                <option value="powershell">PowerShell</option>
+                <option value="plaintext">plaintext</option>
+            </select>
+            <span class="material-symbols-outlined cursor-pointer" id="newFileBtn" style="font-size:37px">
+                draft
+            </span>
+            <span class="material-symbols-outlined cursor-pointer" id="openBtn" style="font-size:37px">
+                folder_open
+            </span>
+            <span class="material-symbols-outlined cursor-pointer mr-2" id="saveBtn" style="font-size:37px">
+                download
+            </span>
+            <span class="material-symbols-outlined cursor-pointer" id="modeToggleBtn" style="font-size:37px">
+                contrast
+            </span>
+        </div>
+    </header>
+    <div id="editor" style="height: calc(100vh - 111px);"></div>
+
+    <!-- Monaco Editor & require.jsの読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/vs/loader.js"></script>
+    <script>
+        require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/vs" } });
+        require(["vs/editor/editor.main"], function () {
+            window.editor = monaco.editor.create(document.getElementById("editor"), {
+                value: "console.log('Hello, Einfach Code Editor!');",
+                language: "javascript",
+                theme: "vs-dark",
+                automaticLayout: true
+            });
+            // Monacoが初期化されたら、app.jsを動的ロード
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = 'src/app.js';
+            document.body.appendChild(script);
+        });
+    </script>
+    <style>
+        .btn {
+            padding: 0.5rem 1rem;
+            background-color: #444;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: #666;
+        }
+    </style>
+</body>
+
+</html>
