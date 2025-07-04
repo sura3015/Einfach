@@ -362,23 +362,25 @@ langSelect.addEventListener("change", (e) => {
 });
 
 // キーボードショートカットで保存
-document.addEventListener("keydown", function (event) {
+function handleKeyEvent(event) {
   const isCtrlOrCmd = event.ctrlKey || event.metaKey;
   const isSKey = event.key === "s" || event.keyCode === 83;
   if (isCtrlOrCmd && (event.key === "o" || event.keyCode === 79)) {
-    event.preventDefault(); // ブラウザのデフォルトの「開く」処理を防止
+    event.preventDefault();
     openBtn.click();
   }
-  if (isCtrlOrCmd && (event.key === "c" || event.keyCode === 78)) {
-    console.log("新規ファイルのショートカットが押されました");
-    event.preventDefault(); // ブラウザのデフォルトの「新しいタブ」処理を防止
+  if (isCtrlOrCmd && event.key === "n") {
+    event.preventDefault();
     newFileBtn.click();
   }
   if (isCtrlOrCmd && isSKey) {
-    event.preventDefault(); // ブラウザのデフォルトの保存処理を防止
-    saveBtn.click(); // 保存ボタンのクリックイベントをプログラムから発生させる
+    event.preventDefault();
+    saveBtn.click();
   }
-});
+}
+
+document.addEventListener("keydown", handleKeyEvent);
+document.addEventListener("keyup", handleKeyEvent);
 
 // 🎉 初期復元
 loadEditorState();
