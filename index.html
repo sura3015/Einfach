@@ -74,8 +74,8 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const serviceWorkerScript = `/Einfach/sw.js`; // スクリプトパス: /my-editor/sw.js または /sw.js
-                navigator.serviceWorker.register(serviceWorkerScript, { scope: '/Einfach/sw.js' })
+                const serviceWorkerScript = '/Einfach/sw.js';
+                navigator.serviceWorker.register(serviceWorkerScript, { scope: '/Einfach/' })
                     .then(registration => {
                         console.log('Service Worker registered with scope:', registration.scope);
                         console.log('Script URL:', registration.scriptURL);
@@ -85,6 +85,7 @@
                     });
             });
         }
+
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/vs/loader.js"></script>
