@@ -1,9 +1,9 @@
-const CACHE_NAME = "einfach-code-editor-cache-v5";
-const OFFLINE_URL = "./src/offline.html";
+const CACHE_NAME = "einfach-code-editor-cache-v6";
+const OFFLINE_URL = "./Einfach/src/offline.html";
 
 const urlsToCache = [
-  "./icon-192.png",
-  "./icon-512.png",
+  "./Einfach/icon-192.png",
+  "./Einfach/icon-512.png",
   OFFLINE_URL,
   "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined",
 ];
