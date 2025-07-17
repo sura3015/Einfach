@@ -188,14 +188,13 @@ function loadEditorState() {
 }
 
 // 新規ファイル
-// 新規ファイル
 newFileBtn.addEventListener("click", () => {
-  const suggestedName = `untitled${Object.keys(fileModels).length + 1}.js`;
+  const suggestedName = `untitled.js`;
   const filename = prompt("新規ファイル名を入力", suggestedName);
   if (filename) {
-    const uniqueFilename = getUniqueFilename(filename); // Apply unique filename logic
-    const lang = getLanguageFromExtension(uniqueFilename); // Use uniqueFilename for language detection
-    createModel("", uniqueFilename, lang); // Create model with uniqueFilename
+    const uniqueFilename = getUniqueFilename(filename);
+    const lang = getLanguageFromExtension(uniqueFilename);
+    createModel("", uniqueFilename, lang);
     currentFile = uniqueFilename;
     switchToFile(uniqueFilename);
     updateTabs();
