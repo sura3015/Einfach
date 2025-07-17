@@ -289,6 +289,18 @@
         // オンライン状態が変化したときの処理
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
+        async function checkConnection() {
+            try {
+                const response = await fetch('https://www.google.com/favicon.ico', { method: 'HEAD', cache: 'no-store' });
+                if (response.ok) {
+                    updateOnlineStatus();
+                }
+            } catch (e) {
+                null;
+            }
+        }
+
+        setInterval(checkConnection, 5000);
 
         // 定期的に接続状態をチェック
         setInterval(() => {
