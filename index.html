@@ -75,7 +75,7 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const serviceWorkerScript = `/Einfach/sw.js`; // スクリプトパス: /my-editor/sw.js または /sw.js
-                navigator.serviceWorker.register(serviceWorkerScript, { scope: '/Einfach/' })
+                navigator.serviceWorker.register(serviceWorkerScript, { scope: '/Einfach/sw.js' })
                     .then(registration => {
                         console.log('Service Worker registered with scope:', registration.scope);
                         console.log('Script URL:', registration.scriptURL);
