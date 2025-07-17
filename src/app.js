@@ -1,9 +1,9 @@
 let fileHandle = null;
+let currentFile = null;
 const fileModels = {};
 const fileHandles = {};
 const dirtyFlags = {};
 const fileExtensions = {};
-let currentFile = null;
 
 // 言語拡張子マップ
 const langExtMap = {
@@ -188,16 +188,16 @@ function loadEditorState() {
 }
 
 // 新規ファイル
+// 新規ファイル
 newFileBtn.addEventListener("click", () => {
-  const filename = prompt(
-    "新規ファイル名を入力",
-    `untitled${Object.keys(fileModels).length + 1}.js`
-  );
+  const suggestedName = `untitled${Object.keys(fileModels).length + 1}.js`;
+  const filename = prompt("新規ファイル名を入力", suggestedName);
   if (filename) {
-    const lang = getLanguageFromExtension(filename);
-    createModel("", filename, lang);
-    currentFile = filename;
-    switchToFile(filename);
+    const uniqueFilename = getUniqueFilename(filename); // Apply unique filename logic
+    const lang = getLanguageFromExtension(uniqueFilename); // Use uniqueFilename for language detection
+    createModel("", uniqueFilename, lang); // Create model with uniqueFilename
+    currentFile = uniqueFilename;
+    switchToFile(uniqueFilename);
     updateTabs();
     saveEditorState();
   }
@@ -369,7 +369,10 @@ function handleKeyEvent(event) {
     event.preventDefault();
     openBtn.click();
   }
-  if (isCtrlOrCmd && event.key === "n") {
+  if (
+    (isCtrlOrCmd && event.key === "n") ||
+    (isCtrlOrCmd && event.key === "u")
+  ) {
     event.preventDefault();
     newFileBtn.click();
   }
