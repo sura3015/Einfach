@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="icon-512.png" type="image/png">
+    <title>オフライン</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            color: #eee;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 背景のアニメーション効果 */
+        .background-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        .floating-cloud {
+            position: absolute;
+            font-size: 2rem;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.3;
+        }
+
+        .floating-cloud:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-cloud:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            animation-delay: -2s;
+        }
+
+        .floating-cloud:nth-child(3) {
+            bottom: 30%;
+            left: 20%;
+            animation-delay: -4s;
+        }
+
+        .floating-cloud:nth-child(4) {
+            bottom: 10%;
+            right: 10%;
+            animation-delay: -1s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .container {
+            max-width: 600px;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .icon-container {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .main-icon {
+            color: #fff;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .wifi-icon {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 1.5rem;
+            color: #ff6b6b;
+            animation: shake 0.5s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-2px);
+            }
+
+            75% {
+                transform: translateX(2px);
+            }
+        }
+
+        h1 {
+            font-size: 2.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .message {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        .retry-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            text-decoration: none;
+            margin-top: 1rem;
+        }
+
+        .retry-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .retry-button:active {
+            transform: translateY(0);
+        }
+
+        @keyframes blink {
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0.3;
+            }
+        }
+
+        /* レスポンシブデザイン */
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .main-icon {
+                font-size: 4rem;
+            }
+
+            .floating-cloud {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* ダークモード対応 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+
+<body>
+    <!-- 背景のアニメーション -->
+    <div class="background-animation">
+        <div class="floating-cloud">☁️</div>
+        <div class="floating-cloud">☁️</div>
+        <div class="floating-cloud">☁️</div>
+        <div class="floating-cloud">☁️</div>
+        <div class="floating-cloud">☁️</div>
+    </div>
+
+    <div class="container">
+        <div class="icon-container">
+            <span class="material-symbols-outlined main-icon" style="font-size:38px">cloud_off</span>
+            <span class="material-symbols-outlined wifi-icon">wifi_off</span>
+        </div>
+
+        <h1>オフライン状態</h1>
+        <p class="subtitle">インターネット接続が検出されません</p>
+
+        <p class="message">この機能を使用するには安定したインターネット接続が必要です。</p>
+        <p class="message">接続を確認して、再度お試しください。</p>
+
+        <button class="retry-button" onclick="window.location.reload()">
+            <span class="material-symbols-outlined" style="font-size: 1.2rem;">refresh</span>
+            再読み込み
+        </button>
+    </div>
+
+    <script>
+        // オンライン状態の監視
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                window.location.reload();
+            }
+        }
+
+        // オンライン状態が変化したときの処理
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        // 定期的に接続状態をチェック
+        setInterval(() => {
+            if (navigator.onLine) {
+                updateOnlineStatus();
+            }
+        }, 5000);
+    </script>
+</body>
+
+</html>

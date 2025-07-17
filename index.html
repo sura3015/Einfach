@@ -71,7 +71,20 @@
     </header>
     <div id="editor" style="height: calc(100vh - 111px);"></div>
 
-    <!-- Monaco Editor & require.jsの読み込み -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => { // DOMContentLoaded でも可
+                navigator.serviceWorker.register('/sw.js') // sw.jsがルートにあることを想定
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/vs/loader.js"></script>
     <script>
         require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/vs" } });
@@ -84,7 +97,7 @@
             });
             // Monacoが初期化されたら、app.jsを動的ロード
             const script = document.createElement('script');
-            script.type = 'module';
+            // script.type = 'module'; // app.jsがESモジュールでなければこの行は削除してください
             script.src = 'src/app.js';
             document.body.appendChild(script);
         });
