@@ -73,10 +73,12 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => { // DOMContentLoaded でも可
-                navigator.serviceWorker.register('/sw.js') // sw.jsがルートにあることを想定
+            window.addEventListener('load', () => {
+                const serviceWorkerScript = `/Einfach/sw.js`;
+                navigator.serviceWorker.register(serviceWorkerScript, { scope: serviceWorkerScope })
                     .then(registration => {
-                        console.log('Service Worker registered:', registration);
+                        console.log('Service Worker registered with scope:', registration.scope);
+                        console.log('Script URL:', registration.scriptURL);
                     })
                     .catch(error => {
                         console.log('Service Worker registration failed:', error);
