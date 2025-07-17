@@ -285,10 +285,6 @@
                 window.location.reload();
             }
         }
-
-        // オンライン状態が変化したときの処理
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
         async function checkConnection() {
             try {
                 const response = await fetch('https://www.google.com/favicon.ico', { method: 'HEAD', cache: 'no-store' });
@@ -300,14 +296,7 @@
             }
         }
 
-        setInterval(checkConnection, 5000);
-
-        // 定期的に接続状態をチェック
-        setInterval(() => {
-            if (navigator.onLine) {
-                updateOnlineStatus();
-            }
-        }, 5000);
+        setInterval(checkConnection, 2500);
     </script>
 </body>
 
