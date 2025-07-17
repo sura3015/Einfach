@@ -1,37 +1,52 @@
-const CACHE_NAME = "einfach-code-editor-cache-v6";
-const OFFLINE_URL = "./Einfach/src/offline.html";
-
-const urlsToCache = [
-  "./Einfach/icon-192.png",
-  "./Einfach/icon-512.png",
-  OFFLINE_URL,
-  "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined",
-];
+const CACHE_NAME = "einfach-code-editor-cache-v7";
+const OFFLINE_PAGE_NAME = "offline.html";
+const getBaseUrlPath = () => {
+  const scopePath = self.registration.scope;
+  const url = new URL(scopePath);
+  return url.pathname;
+};
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
       .then((cache) => {
-        console.log("Opened cache");
+        console.log("Opened cache:", CACHE_NAME);
+
+        const baseUrlPath = getBaseUrlPath();
+
+        const urlsToCache = [
+          baseUrlPath,
+          `${baseUrlPath}icon-192.png`,
+          `${baseUrlPath}icon-512.png`,
+          `${baseUrlPath}${OFFLINE_PAGE_NAME}`,
+        ];
+
+        console.log("Attempting to cache URLs:", urlsToCache);
+
         return cache.addAll(urlsToCache);
       })
       .catch((error) => {
         console.error("Failed to cache during install:", error);
+        // console.error('Error details:', error);
       })
   );
 });
 
 self.addEventListener("fetch", (event) => {
+  // ナビゲーションリクエスト（HTMLページのリクエスト）の場合
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request).catch(() => {
-        return caches.match(OFFLINE_URL);
+        // ネットワークエラーの場合、オフラインページを返す
+        const baseUrlPath = getBaseUrlPath();
+        return caches.match(`${baseUrlPath}${OFFLINE_PAGE_NAME}`); // 正しいパスで取得
       })
     );
     return;
   }
 
+  // その他のリクエスト（CSS、JS、画像など）の場合
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
@@ -46,7 +61,6 @@ self.addEventListener("fetch", (event) => {
           ) {
             return response;
           }
-
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
