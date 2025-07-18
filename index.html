@@ -78,7 +78,7 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const serviceWorkerScript = '/Einfach/sw.js';
-                navigator.serviceWorker.register(serviceWorkerScript,{ scope: '/Einfach/' })
+                navigator.serviceWorker.register(serviceWorkerScript, { scope: '/Einfach/' })
                     .then(registration => {
                         console.log('Service Worker registered with scope:', registration.scope);
                         console.log('Script URL:', registration.scriptURL);
@@ -118,6 +118,10 @@
 
         .btn:hover {
             background-color: #666;
+        }
+
+        .material-symbols-outlined {
+            user-select: none;
         }
     </style>
 </body>
