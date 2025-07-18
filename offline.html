@@ -279,24 +279,24 @@
     </div>
 
     <script>
-        // オンライン状態の監視
-        function updateOnlineStatus() {
-            if (navigator.onLine) {
-                window.location.reload();
-            }
-        }
-        async function checkConnection() {
+        // オンライン状態の監視と再接続のチェック   
+        async function checkInternetConnectionStatus() {
             try {
                 const response = await fetch('https://www.google.com/favicon.ico', { method: 'HEAD', cache: 'no-store' });
-                if (response.ok) {
-                    updateOnlineStatus();
-                }
+                return response.ok;
             } catch (e) {
-                null;
+                return false; // 接続失敗
             }
         }
 
-        setInterval(checkConnection, 2500);
+        // 使い方例
+        async function handleConnectionChange() {
+            const isOnline = await checkInternetConnectionStatus();
+            if (isOnline) {
+                window.location.reload();
+            }
+        }
+        setInterval(handleConnectionChange, 1000);
     </script>
 </body>
 
