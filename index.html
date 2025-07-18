@@ -77,8 +77,8 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const serviceWorkerScript = '/sw.js';
-                navigator.serviceWorker.register(serviceWorkerScript,)
+                const serviceWorkerScript = '/Einfach/sw.js';
+                navigator.serviceWorker.register(serviceWorkerScript,{ scope: '/Einfach/' })
                     .then(registration => {
                         console.log('Service Worker registered with scope:', registration.scope);
                         console.log('Script URL:', registration.scriptURL);
