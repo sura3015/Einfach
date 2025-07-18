@@ -273,22 +273,14 @@
 
     <script>
         // オンライン状態の監視と再接続のチェック   
-        async function checkInternetConnectionStatus() {
-            try {
-                const response = await fetch('https://www.google.com/favicon.ico', { method: 'HEAD', cache: 'no-store' });
-                return response.ok;
-            } catch (e) {
-                return false;
-            }
-        }
-        
+
         async function handleConnectionChange() {
-            const isOnline = await checkInternetConnectionStatus();
+            const isOnline = navigator.onLine;
             if (isOnline) {
                 window.location.reload();
             }
         }
-        setInterval(handleConnectionChange, 500);
+        setInterval(handleConnectionChange, 1000);
     </script>
 </body>
 
