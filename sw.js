@@ -19,6 +19,9 @@ self.addEventListener("install", (event) => {
           baseUrlPath,
           `${baseUrlPath}icon-192.png`,
           `${baseUrlPath}icon-512.png`,
+          `${baseUrlPath}icons/refresh.svg`,
+          `${baseUrlPath}icons/cloud_off.svg`,
+          `${baseUrlPath}icons/wifi_off.svg`,
           `${baseUrlPath}${OFFLINE_PAGE_NAME}`,
         ];
 

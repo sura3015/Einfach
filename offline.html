@@ -104,7 +104,7 @@
         }
 
         .icon-container {
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             position: relative;
         }
 
@@ -130,8 +130,6 @@
             position: absolute;
             top: -10px;
             right: -10px;
-            font-size: 1.5rem;
-            color: #ff6b6b;
             animation: shake 0.5s ease-in-out infinite;
         }
 
@@ -182,7 +180,7 @@
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.3);
             color: #fff;
-            padding: 0.8rem 1.5rem;
+            padding: 0.8rem 1.4rem;
             border-radius: 50px;
             font-size: 1rem;
             font-weight: 500;
@@ -231,10 +229,6 @@
                 font-size: 1.1rem;
             }
 
-            .main-icon {
-                font-size: 4rem;
-            }
-
             .floating-cloud {
                 font-size: 1.5rem;
             }
@@ -247,7 +241,6 @@
             }
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
 
 <body>
@@ -262,8 +255,8 @@
 
     <div class="container">
         <div class="icon-container">
-            <span class="material-symbols-outlined main-icon" style="font-size:38px">cloud_off</span>
-            <span class="material-symbols-outlined wifi-icon">wifi_off</span>
+            <img src="icons/cloud_off.svg" class="main-icon" width="45" height="45" />
+            <img src="icons/wifi_off.svg" class="wifi-icon" width="25" height="25" />
         </div>
 
         <h1>オフライン状態</h1>
@@ -273,7 +266,7 @@
         <p class="message">接続を確認して、再度お試しください。</p>
 
         <button class="retry-button" onclick="window.location.reload()">
-            <span class="material-symbols-outlined" style="font-size: 1.2rem;">refresh</span>
+            <img src="icons/refresh.svg" width="20" height="20" />
             再読み込み
         </button>
     </div>
