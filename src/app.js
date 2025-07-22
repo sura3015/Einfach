@@ -230,6 +230,41 @@ openBtn.addEventListener("click", async () => {
   saveEditorState();
 });
 
+// ...existing code...
+
+// フォルダ選択ボタンを追加
+const openFolderBtn = document.getElementById("openFolderBtn");
+// フォルダからファイルをまとめて開く
+openFolderBtn.addEventListener("click", async () => {
+  try {
+    console.log("フォルダ選択ダイアログを表示");
+    const dirHandle = await window.showDirectoryPicker();
+    for await (const [name, handle] of dirHandle.entries()) {
+      if (handle.kind === "file") {
+        const file = await handle.getFile();
+        const contents = await file.text();
+        const uniqueName = getUniqueFilename(file.name);
+        const lang = getLanguageFromExtension(file.name);
+        const model = createModel(contents, uniqueName, lang);
+        fileHandles[uniqueName] = handle;
+      }
+    }
+    // 最初のファイルを表示
+    const firstFile = Object.keys(fileModels)[0];
+    if (firstFile) {
+      currentFile = firstFile;
+      switchToFile(firstFile);
+    }
+    updateTabs();
+    saveEditorState();
+    showMessage("フォルダ内のファイルを開きました", 3000, "success");
+  } catch (e) {
+    showMessage("フォルダの読み込みに失敗しました", 3000, "info");
+  }
+});
+
+// ...existing code...
+
 // 保存
 saveBtn.addEventListener("click", async () => {
   if (!currentFile)
