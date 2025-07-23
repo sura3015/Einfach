@@ -41,6 +41,7 @@ function getLanguageFromExtension(filename) {
     ts: "typescript",
     tsx: "typescript",
     py: "python",
+    pyw: "python",
     html: "html",
     htm: "html",
     css: "css",
@@ -89,9 +90,12 @@ modeToggleBtn.addEventListener("click", () => {
 
 // タブバー
 const tabBar = document.createElement("div");
+tabBar.id = "tabBar";
 tabBar.style.display = "flex";
 tabBar.style.backgroundColor = "#333";
 tabBar.style.padding = "4px";
+tabBar.style.overflowX = "auto"; // Add this line for horizontal scrolling
+tabBar.style.whiteSpace = "nowrap"; // Add this line to prevent tabs from wrapping
 document.body.insertBefore(tabBar, document.getElementById("editor"));
 
 // タブ追加・更新
