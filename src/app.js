@@ -94,9 +94,31 @@ tabBar.id = "tabBar";
 tabBar.style.display = "flex";
 tabBar.style.backgroundColor = "#333";
 tabBar.style.padding = "4px";
-tabBar.style.overflowX = "auto"; // Add this line for horizontal scrolling
-tabBar.style.whiteSpace = "nowrap"; // Add this line to prevent tabs from wrapping
+tabBar.style.overflowX = "auto";
+tabBar.style.whiteSpace = "nowrap";
 document.body.insertBefore(tabBar, document.getElementById("editor"));
+
+tabBar.addEventListener("wheel", (e) => {
+  if (e.deltaY !== 0) {
+    tabBar.scrollLeft += e.deltaY;
+    e.preventDefault();
+  }
+});
+
+const contextMenu = document.getElementById("tabContextMenu");
+
+document.addEventListener("click", (e) => {
+  if (contextMenu && !contextMenu.contains(e.target)) {
+    contextMenu.style.display = "none";
+  }
+});
+
+tabBar.addEventListener("wheel", (e) => {
+  if (e.deltaY !== 0) {
+    tabBar.scrollLeft += e.deltaY;
+    e.preventDefault();
+  }
+});
 
 // タブ追加・更新
 function addTab(filename) {
@@ -108,6 +130,7 @@ function addTab(filename) {
   tab.style.cursor = "pointer";
   tab.style.display = "flex";
   tab.style.alignItems = "center";
+  tab.setAttribute("data-filename", filename);
 
   const title = document.createElement("span");
   title.textContent = dirtyFlags[filename] ? `${filename} *` : filename;
@@ -124,8 +147,30 @@ function addTab(filename) {
   tab.appendChild(closeBtn);
 
   tab.addEventListener("click", () => switchToFile(filename));
+
+  // 右クリックイベントリスナー
+  tab.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+
+    contextMenu.style.left = `${e.pageX}px`;
+    contextMenu.style.top = `${e.pageY}px`;
+    contextMenu.style.display = "block";
+
+    contextMenu.dataset.targetFile = filename;
+  });
+
+  // ★中クリックイベントリスナーを追加
+  tab.addEventListener("mouseup", (e) => {
+    if (e.button === 1) {
+      // マウスの中ボタン（ホイールボタン）
+      e.preventDefault(); // デフォルトの動作（スクロールなど）を抑制
+      closeFile(filename);
+    }
+  });
+
   tabBar.appendChild(tab);
 }
+
 function updateTabs() {
   tabBar.innerHTML = "";
   Object.keys(fileModels).forEach(addTab);
@@ -163,6 +208,7 @@ function createModel(content, filename, lang) {
 }
 
 // 保存状態をローカルストレージに
+// ...existing code...
 function saveEditorState() {
   const state = {
     files: Object.keys(fileModels).map((name) => ({
@@ -172,23 +218,42 @@ function saveEditorState() {
       dirty: dirtyFlags[name],
     })),
     currentFile,
+    dirHistory: dirHistory.map((dir) => dir.name || ""), // ディレクトリ名のみ保存
   };
   localStorage.setItem("editorState", JSON.stringify(state));
 }
 
 // 復元
-function loadEditorState() {
+async function loadEditorState() {
   const stateStr = localStorage.getItem("editorState");
   if (!stateStr) return;
   const state = JSON.parse(stateStr);
   state.files.forEach((file) => {
     const model = createModel(file.content, file.name, file.language);
-    dirtyFlags[file.name] = file.dirty; // 復元時も未保存マーク
+    dirtyFlags[file.name] = file.dirty;
   });
   if (state.currentFile && fileModels[state.currentFile]) {
     switchToFile(state.currentFile);
   }
   updateTabs();
+
+  // フォルダ履歴復元（ユーザーに再選択してもらう）
+  if (state.dirHistory && state.dirHistory.length > 0) {
+    showMessage(
+      `前回開いたフォルダは「${
+        state.dirHistory[state.dirHistory.length - 1]
+      }」です`,
+      4000,
+      "info"
+    );
+    try {
+      const dirHandle = await window.showDirectoryPicker();
+
+      await showFileExplorer(dirHandle);
+    } catch (e) {
+      // キャンセル時は何もしない
+    }
+  }
 }
 
 // 新規ファイル
@@ -241,26 +306,11 @@ const openFolderBtn = document.getElementById("openFolderBtn");
 // フォルダからファイルをまとめて開く
 openFolderBtn.addEventListener("click", async () => {
   try {
-    console.log("フォルダ選択ダイアログを表示");
     const dirHandle = await window.showDirectoryPicker();
-    for await (const [name, handle] of dirHandle.entries()) {
-      if (handle.kind === "file") {
-        const file = await handle.getFile();
-        const contents = await file.text();
-        const uniqueName = getUniqueFilename(file.name);
-        const lang = getLanguageFromExtension(file.name);
-        const model = createModel(contents, uniqueName, lang);
-        fileHandles[uniqueName] = handle;
-      }
-    }
-    // 最初のファイルを表示
-    const firstFile = Object.keys(fileModels)[0];
-    if (firstFile) {
-      currentFile = firstFile;
-      switchToFile(firstFile);
-    }
-    updateTabs();
+    await showFileExplorer(dirHandle);
     saveEditorState();
+    dirHistory = [dirHandle]; // 履歴を更新
+    backBtn.style.opacity = "0.5";
     showMessage("フォルダ内のファイルを開きました", 3000, "success");
   } catch (e) {
     showMessage("フォルダの読み込みに失敗しました", 3000, "info");
@@ -399,6 +449,163 @@ langSelect.addEventListener("change", (e) => {
   }
 });
 
+// ...existing code...
+
+let dirHistory = []; // ディレクトリ履歴
+
+const backBtn = document.getElementById("backExplorerBtn");
+backBtn.onclick = async () => {
+  if (dirHistory.length > 1) {
+    dirHistory.pop();
+    const prevDir = dirHistory[dirHistory.length - 1];
+    await showFileExplorer(prevDir);
+  }
+};
+
+function hideBackExplorerBtn() {
+  document.getElementById("backExplorerBtn").style.display = "none";
+}
+function showBackExplorerBtn() {
+  document.getElementById("backExplorerBtn").style.display = "flex";
+}
+// showFileExplorer関数内
+async function showFileExplorer(dirHandle) {
+  const explorer = document.getElementById("fileExplorer");
+  explorer.innerHTML = "";
+
+  const folderNameDiv = document.createElement("div");
+  folderNameDiv.id = "currentFolderName";
+  folderNameDiv.textContent = ">" + dirHandle.name || "フォルダ";
+  folderNameDiv.style.padding = "6px 10px";
+  folderNameDiv.style.fontWeight = "bold";
+  folderNameDiv.style.background = "#444";
+  folderNameDiv.style.borderBottom = "1px solid #444";
+  explorer.appendChild(folderNameDiv);
+  // 履歴に追加
+  if (!dirHistory.length || dirHistory[dirHistory.length - 1] !== dirHandle) {
+    dirHistory.push(dirHandle);
+  }
+
+  // 戻るボタンの有効/無効切り替え
+  backBtn.disabled = dirHistory.length <= 1;
+  backBtn.style.opacity = dirHistory.length <= 1 ? "0.5" : "1";
+
+  for await (const [name, handle] of dirHandle.entries()) {
+    const item = document.createElement("div");
+    item.textContent = name;
+    item.style.padding = "6px 12px";
+    item.style.cursor = "pointer";
+    item.style.borderBottom = "1px solid #333";
+    if (handle.kind === "file") {
+      item.onclick = async () => {
+        const file = await handle.getFile();
+        const contents = await file.text();
+        const uniqueName = getUniqueFilename(file.name);
+        const lang = getLanguageFromExtension(file.name);
+        const model = createModel(contents, uniqueName, lang);
+        fileHandles[uniqueName] = handle;
+        currentFile = uniqueName;
+        switchToFile(uniqueName);
+        updateTabs();
+        saveEditorState();
+      };
+    } else if (handle.kind === "directory") {
+      item.style.fontWeight = "bold";
+      item.onclick = async () => {
+        await showFileExplorer(handle); // サブフォルダ表示
+      };
+    }
+    explorer.appendChild(item);
+  }
+}
+
+const explorerContainer = document.getElementById("fileExplorerContainer");
+const toggleBtn = document.getElementById("toggleExplorerBtn");
+toggleBtn.addEventListener("click", () => {
+  explorerContainer.classList.toggle("closed");
+  const editor = document.getElementById("editor");
+  if (explorerContainer.classList.contains("closed")) {
+    editor.style.left = "0";
+    editor.style.width = "100vw";
+    hideBackExplorerBtn();
+  } else {
+    showBackExplorerBtn();
+    editor.style.left = "220px";
+    editor.style.width = "calc(100vw - 220px)";
+  }
+  setTimeout(() => {
+    window.editor.layout();
+  }, 310);
+});
+
+contextMenu.addEventListener("click", (e) => {
+  const action = e.target.dataset.action;
+  const targetFile = contextMenu.dataset.targetFile;
+
+  contextMenu.style.display = "none"; // メニューを非表示にする
+
+  if (!targetFile && action !== "closeAll") return; // closeAllの場合はtargetFileがなくても良い
+
+  if (action === "close") {
+    closeFile(targetFile);
+  } else if (action === "rename") {
+    const newFilename = prompt("新しいファイル名を入力", targetFile);
+    if (newFilename && newFilename !== targetFile) {
+      const oldModel = fileModels[targetFile];
+      const newLang = getLanguageFromExtension(newFilename);
+      const oldContent = oldModel.getValue();
+
+      const newModel = monaco.editor.createModel(oldContent, newLang);
+      fileModels[newFilename] = newModel;
+      fileHandles[newFilename] = fileHandles[targetFile];
+      dirtyFlags[newFilename] = dirtyFlags[targetFile];
+      fileExtensions[newFilename] = newFilename.split(".").pop().toLowerCase();
+
+      oldModel.dispose();
+      delete fileModels[targetFile];
+      delete fileHandles[targetFile];
+      delete dirtyFlags[targetFile];
+      delete fileExtensions[targetFile];
+
+      if (currentFile === targetFile) {
+        currentFile = newFilename;
+        switchToFile(newFilename);
+      }
+      updateTabs();
+      saveEditorState();
+    }
+  } else if (action === "closeAll") {
+    // すべてのファイルを閉じる
+    Object.keys(fileModels).forEach((filename) => {
+      closeFile(filename);
+    });
+    // すべて閉じたらエディタをクリア
+    window.editor.setValue("");
+    currentFile = null;
+    updateTabs();
+    saveEditorState();
+  } else if (action === "closeOthers") {
+    // このファイル以外を閉じる
+    const filesToClose = Object.keys(fileModels).filter(
+      (filename) => filename !== targetFile
+    );
+    filesToClose.forEach((filename) => {
+      closeFile(filename);
+    });
+    // 対象ファイルが残っていればそれに切り替える（既に切り替わっているはずだが念のため）
+    if (currentFile !== targetFile && fileModels[targetFile]) {
+      switchToFile(targetFile);
+    } else if (!fileModels[targetFile]) {
+      // もし対象ファイルがなぜか存在しない場合
+      currentFile = Object.keys(fileModels)[0] || null;
+      if (currentFile) switchToFile(currentFile);
+      else window.editor.setValue("");
+    }
+    updateTabs();
+    saveEditorState();
+  }
+});
+
 // キーボードショートカットで保存
 function handleKeyEvent(event) {
   const isCtrlOrCmd = event.ctrlKey || event.metaKey;
@@ -418,6 +625,10 @@ function handleKeyEvent(event) {
     event.preventDefault();
     saveBtn.click();
   }
+  if (isCtrlOrCmd && event.key === "f") {
+    event.preventDefault();
+    openFolderBtn.click();
+  }
 }
 
 document.addEventListener("keydown", handleKeyEvent);
@@ -425,3 +636,13 @@ document.addEventListener("keyup", handleKeyEvent);
 
 // 🎉 初期復元
 loadEditorState();
+if (Object.keys(fileModels).length === 0) {
+  const sampleCode = `console.log("Hello, Einfach Code Editor!");`;
+  const filename = "sample.js";
+  const lang = getLanguageFromExtension(filename);
+  createModel(sampleCode, filename, lang);
+  currentFile = filename;
+  switchToFile(filename);
+  updateTabs();
+  saveEditorState();
+}
