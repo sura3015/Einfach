@@ -246,13 +246,6 @@ async function loadEditorState() {
       "info"
     );
     OpenedfolderMessage = true;
-    try {
-      const dirHandle = await window.showDirectoryPicker();
-
-      await showFileExplorer(dirHandle);
-    } catch (e) {
-      // キャンセル時は何もしない
-    }
   }
 }
 
