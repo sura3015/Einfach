@@ -485,7 +485,6 @@ async function showFileExplorer(dirHandle) {
   folderNameDiv.style.fontWeight = "bold";
   folderNameDiv.style.overflow = "hidden";
   folderNameDiv.style.textOverflow = "ellipsis";
-  folderNameDiv.style.whiteSpace = "nowrap";
   folderNameDiv.style.background = "#444";
   folderNameDiv.style.borderBottom = "1px solid #444";
   explorer.appendChild(folderNameDiv);
@@ -502,6 +501,8 @@ async function showFileExplorer(dirHandle) {
     item.textContent = name;
     item.style.padding = "6px 12px";
     item.style.cursor = "pointer";
+    item.style.overflow = "hidden";
+    item.style.textOverflow = "ellipsis";
     item.style.borderBottom = "1px solid #333";
     if (handle.kind === "file") {
       item.onclick = async () => {
