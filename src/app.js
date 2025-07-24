@@ -239,12 +239,10 @@ async function loadEditorState() {
 
   // フォルダ履歴復元（ユーザーに再選択してもらう）
   if (state.dirHistory && state.dirHistory.length > 0) {
-    showMessage(
-      `前回開いたフォルダは「${
-        state.dirHistory[state.dirHistory.length - 1]
-      }」です`,
-      4000,
-      "info"
+    showMessage(`前回開いたフォルダは"${state.dirHistory}"です`, 4000, "info");
+    console.log(
+      "復元されたディレクトリ履歴:",
+      state.dirHistory[state.dirHistory.length - 1]
     );
     try {
       const dirHandle = await window.showDirectoryPicker();
@@ -299,8 +297,6 @@ openBtn.addEventListener("click", async () => {
   saveEditorState();
 });
 
-// ...existing code...
-
 // フォルダ選択ボタンを追加
 const openFolderBtn = document.getElementById("openFolderBtn");
 // フォルダからファイルをまとめて開く
@@ -316,8 +312,6 @@ openFolderBtn.addEventListener("click", async () => {
     showMessage("フォルダの読み込みに失敗しました", 3000, "info");
   }
 });
-
-// ...existing code...
 
 // 保存
 saveBtn.addEventListener("click", async () => {
@@ -485,7 +479,6 @@ async function showFileExplorer(dirHandle) {
   if (!dirHistory.length || dirHistory[dirHistory.length - 1] !== dirHandle) {
     dirHistory.push(dirHandle);
   }
-
   // 戻るボタンの有効/無効切り替え
   backBtn.disabled = dirHistory.length <= 1;
   backBtn.style.opacity = dirHistory.length <= 1 ? "0.5" : "1";
