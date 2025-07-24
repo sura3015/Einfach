@@ -313,7 +313,7 @@ openFolderBtn.addEventListener("click", async () => {
     }
     showMessage("フォルダ内のファイルを開きました", 3000, "success");
   } catch (e) {
-    showMessage("フォルダの読み込みに失敗しました", 3000, "info");
+    null;
   }
 });
 
