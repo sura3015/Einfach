@@ -208,7 +208,7 @@ function createModel(content, filename, lang) {
 }
 
 // 保存状態をローカルストレージに
-// ...existing code...
+
 function saveEditorState() {
   const state = {
     files: Object.keys(fileModels).map((name) => ({
@@ -218,11 +218,11 @@ function saveEditorState() {
       dirty: dirtyFlags[name],
     })),
     currentFile,
-    dirHistory: dirHistory.map((dir) => dir.name || ""), // ディレクトリ名のみ保存
   };
   localStorage.setItem("editorState", JSON.stringify(state));
 }
 
+let OpenedfolderMessage = false;
 // 復元
 async function loadEditorState() {
   const stateStr = localStorage.getItem("editorState");
@@ -237,13 +237,15 @@ async function loadEditorState() {
   }
   updateTabs();
 
+  Openedfolders = JSON.parse(localStorage.getItem("openedFolders")) || [];
   // フォルダ履歴復元（ユーザーに再選択してもらう）
-  if (state.dirHistory && state.dirHistory.length > 0) {
-    showMessage(`前回開いたフォルダは"${state.dirHistory}"です`, 4000, "info");
-    console.log(
-      "復元されたディレクトリ履歴:",
-      state.dirHistory[state.dirHistory.length - 1]
+  if (Openedfolders.length > 0) {
+    showMessage(
+      `前回開いたフォルダは"${Openedfolders.join(",")}"です`,
+      6000,
+      "info"
     );
+    OpenedfolderMessage = true;
     try {
       const dirHandle = await window.showDirectoryPicker();
 
@@ -296,7 +298,7 @@ openBtn.addEventListener("click", async () => {
   updateTabs();
   saveEditorState();
 });
-
+let Openedfolders = [];
 // フォルダ選択ボタンを追加
 const openFolderBtn = document.getElementById("openFolderBtn");
 // フォルダからファイルをまとめて開く
@@ -307,6 +309,15 @@ openFolderBtn.addEventListener("click", async () => {
     saveEditorState();
     dirHistory = [dirHandle]; // 履歴を更新
     backBtn.style.opacity = "0.5";
+    //開いたフォルダを記録
+    if (OpenedfolderMessage) {
+      Openedfolders = [];
+      OpenedfolderMessage = false;
+    }
+    if (!Openedfolders.includes(dirHandle.name)) {
+      Openedfolders.push(dirHandle.name);
+      localStorage.setItem("openedFolders", JSON.stringify(Openedfolders));
+    }
     showMessage("フォルダ内のファイルを開きました", 3000, "success");
   } catch (e) {
     showMessage("フォルダの読み込みに失敗しました", 3000, "info");
@@ -472,6 +483,9 @@ async function showFileExplorer(dirHandle) {
   folderNameDiv.textContent = ">" + dirHandle.name || "フォルダ";
   folderNameDiv.style.padding = "6px 10px";
   folderNameDiv.style.fontWeight = "bold";
+  folderNameDiv.style.overflow = "hidden";
+  folderNameDiv.style.textOverflow = "ellipsis";
+  folderNameDiv.style.whiteSpace = "nowrap";
   folderNameDiv.style.background = "#444";
   folderNameDiv.style.borderBottom = "1px solid #444";
   explorer.appendChild(folderNameDiv);
