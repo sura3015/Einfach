@@ -163,7 +163,6 @@ html {
 #backExplorerBtn {
   width: 100%;
   background: #2a2a2a;
-  color: rgb(121, 121, 121) !important;
   border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 9px 13px;

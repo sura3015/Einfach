@@ -137,7 +137,7 @@ function addTab(filename) {
   tab.appendChild(title);
 
   const closeBtn = document.createElement("span");
-  closeBtn.textContent = " ×";
+  closeBtn.textContent = "×";
   closeBtn.style.cursor = "pointer";
   closeBtn.style.marginLeft = "4px";
   closeBtn.addEventListener("click", (e) => {
@@ -272,7 +272,7 @@ function getUniqueFilename(filename) {
     counter++;
     const base = filename.replace(/\.[^/.]+$/, "");
     const ext = filename.split(".").pop();
-    uniqueName = `${base} (${counter}).${ext}`;
+    uniqueName = `${base}${counter}.${ext}`;
   }
   return uniqueName;
 }
