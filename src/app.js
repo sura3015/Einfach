@@ -474,7 +474,7 @@ async function showFileExplorer(dirHandle) {
   const folderNameDiv = document.createElement("div");
   folderNameDiv.id = "currentFolderName";
   folderNameDiv.className = "explorer-item";
-  folderNameDiv.textContent = "Opend : " + dirHandle.name || "フォルダ";
+  folderNameDiv.textContent = "Opened : " + dirHandle.name || "フォルダ";
   folderNameDiv.style.fontWeight = "bold";
   folderNameDiv.style.cursor = "default";
   folderNameDiv.style.padding = "8px";
