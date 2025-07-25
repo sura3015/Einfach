@@ -1,4 +1,4 @@
-const CACHE_NAME = "einfach-code-editor-cache-v14";
+const CACHE_NAME = "einfach-code-editor-cache-v15";
 const OFFLINE_PAGE_NAME = "offline.html";
 const getBaseUrlPath = () => {
   const scopePath = self.registration.scope;

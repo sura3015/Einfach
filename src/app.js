@@ -301,7 +301,7 @@ openFolderBtn.addEventListener("click", async () => {
     await showFileExplorer(dirHandle);
     saveEditorState();
     dirHistory = [dirHandle]; // 履歴を更新
-    backBtn.style.opacity = "0.5";
+    backBtn.style.color = "rgb(121, 121, 121)";
     //開いたフォルダを記録
     if (OpenedfolderMessage) {
       Openedfolders = [];
@@ -473,13 +473,12 @@ async function showFileExplorer(dirHandle) {
 
   const folderNameDiv = document.createElement("div");
   folderNameDiv.id = "currentFolderName";
-  folderNameDiv.textContent = ">" + dirHandle.name || "フォルダ";
-  folderNameDiv.style.padding = "6px 10px";
+  folderNameDiv.className = "explorer-item";
+  folderNameDiv.textContent = "Opend : " + dirHandle.name || "フォルダ";
   folderNameDiv.style.fontWeight = "bold";
-  folderNameDiv.style.overflow = "hidden";
-  folderNameDiv.style.textOverflow = "ellipsis";
-  folderNameDiv.style.background = "#444";
-  folderNameDiv.style.borderBottom = "1px solid #444";
+  folderNameDiv.style.cursor = "default";
+  folderNameDiv.style.padding = "8px";
+  folderNameDiv.style.borderLeft = "2.5px solid #365668";
   explorer.appendChild(folderNameDiv);
   // 履歴に追加
   if (!dirHistory.length || dirHistory[dirHistory.length - 1] !== dirHandle) {
@@ -487,16 +486,22 @@ async function showFileExplorer(dirHandle) {
   }
   // 戻るボタンの有効/無効切り替え
   backBtn.disabled = dirHistory.length <= 1;
-  backBtn.style.opacity = dirHistory.length <= 1 ? "0.5" : "1";
+  backBtn.style.color =
+    dirHistory.length <= 1 ? "rgb(121, 121, 121)" : "#ffffff";
 
   for await (const [name, handle] of dirHandle.entries()) {
     const item = document.createElement("div");
     item.textContent = name;
-    item.style.padding = "6px 12px";
-    item.style.cursor = "pointer";
-    item.style.overflow = "hidden";
-    item.style.textOverflow = "ellipsis";
-    item.style.borderBottom = "1px solid #333";
+    item.id = "explorer-item";
+    item.className = "explorer-item";
+    item.addEventListener("click", () => {
+      // 他の選択を解除
+      document
+        .querySelectorAll(".explorer-item")
+        .forEach((i) => i.classList.remove("selected"));
+      // 現在のアイテムを選択
+      item.classList.add("selected");
+    });
     if (handle.kind === "file") {
       item.onclick = async () => {
         const file = await handle.getFile();
