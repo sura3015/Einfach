@@ -60,6 +60,7 @@ function getLanguageFromExtension(filename) {
     yaml: "yaml",
     yml: "yaml",
     xml: "xml",
+    xaml: "xml",
     kt: "kotlin",
     swift: "swift",
     rs: "rust",
