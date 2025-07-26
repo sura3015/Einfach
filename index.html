@@ -82,7 +82,7 @@
     </header>
     <div id="editor"></div>
     <div id="fileExplorerContainer"
-        style="position:absolute; left:0; top:111px; height: calc(100vh - 158px); z-index:10;">
+        style="position:absolute; left:0; top:111px; height: calc(100vh - 156px); z-index:10; width: 230px; transition: width 0.2s ease;">
         <button id="backExplorerBtn" style="color: rgb(121, 121, 121);">
             <div class="left-content">
                 <div class="back-icon">
@@ -92,8 +92,10 @@
             </div>
             <span class="breadcrumb">. . /</span>
         </button>
-        <div id="fileExplorer" style="width:220px; background:#222; color:#fff; height:100%; overflow:auto; ">
+        <div id="fileExplorer" style="background:#222; color:#fff; height:100%; overflow:auto; ">
+
         </div>
+        <div id="resizer"></div>
         <button id="toggleExplorerBtn" style="position:absolute; right:-18px; top:10px; width:18px; height:36px; background:#222; color:#fff; border:none; border-radius:0 6px 6px 0; cursor:pointer; z-index:11;
            display:flex;     
            justify-content:center; 
