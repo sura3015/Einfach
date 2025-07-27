@@ -202,14 +202,14 @@ function addTab(filename) {
     }
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const offset = e.clientX - rect.left;
-    const dropPosition = offset > rect.width / 2 ? "right" : "left";
+    // const offset = e.clientX - rect.left; // この行は不要になります
+    // const dropPosition = offset > rect.width / 2 ? "right" : "left"; // この行も不要になります
 
-    e.currentTarget.dataset.dropPosition = dropPosition;
+    // e.currentTarget.dataset.dropPosition = dropPosition; // この行も不要になります
 
     // インジケータの位置を計算
     const tabBarRect = tabBar.getBoundingClientRect();
-    const indicatorX = dropPosition === "right" ? rect.right : rect.left;
+    const indicatorX = rect.right; // 常にターゲットのタブの右端に表示
 
     // インジケータが存在することを確認
     const indicator = document.getElementById("tabDropIndicator");
@@ -217,8 +217,6 @@ function addTab(filename) {
       indicator.style.left = `${indicatorX - tabBarRect.left}px`;
       indicator.style.display = "block";
       console.log("Indicator shown at:", indicatorX - tabBarRect.left);
-    } else {
-      console.error("tabDropIndicator not found!");
     }
   });
 
@@ -257,8 +255,8 @@ function addTab(filename) {
       const newTabOrder = [...currentTabOrder];
       const [removed] = newTabOrder.splice(draggedIndex, 1);
 
-      const insertIndex =
-        dropPosition === "right" ? targetIndex + 1 : targetIndex;
+      // 常に目的のタブの右側に挿入
+      const insertIndex = targetIndex + 1;
       newTabOrder.splice(insertIndex, 0, removed);
 
       reorderTabData(newTabOrder);
