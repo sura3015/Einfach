@@ -34,7 +34,7 @@ const langExtMap = {
   plaintext: "txt",
 };
 
-// 言語判定
+// 言語判定cnso
 function getLanguageFromExtension(filename) {
   const ext = filename.split(".").pop().toLowerCase();
   const map = {
@@ -188,7 +188,6 @@ function addTab(filename) {
 
   // Drag and Drop Event Listeners
   tab.addEventListener("dragstart", (e) => {
-    console.log("dragstart");
     e.dataTransfer.setData("text/plain", filename);
     e.currentTarget.classList.add("dragging");
   });
@@ -202,11 +201,6 @@ function addTab(filename) {
     }
 
     const rect = e.currentTarget.getBoundingClientRect();
-    // const offset = e.clientX - rect.left; // この行は不要になります
-    // const dropPosition = offset > rect.width / 2 ? "right" : "left"; // この行も不要になります
-
-    // e.currentTarget.dataset.dropPosition = dropPosition; // この行も不要になります
-
     // インジケータの位置を計算
     const tabBarRect = tabBar.getBoundingClientRect();
     const indicatorX = rect.right; // 常にターゲットのタブの右端に表示
@@ -216,7 +210,6 @@ function addTab(filename) {
     if (indicator) {
       indicator.style.left = `${indicatorX - tabBarRect.left}px`;
       indicator.style.display = "block";
-      console.log("Indicator shown at:", indicatorX - tabBarRect.left);
     }
   });
 
