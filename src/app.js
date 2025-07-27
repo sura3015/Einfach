@@ -120,7 +120,6 @@ tabBar.addEventListener("wheel", (e) => {
 });
 
 const contextMenu = document.getElementById("tabContextMenu");
-console.log("tabBar content after appending indicator:", tabBar); // この行を追加
 document.addEventListener("click", (e) => {
   if (contextMenu && !contextMenu.contains(e.target)) {
     contextMenu.style.display = "none";
@@ -339,6 +338,7 @@ function switchToFile(filename, skipViewRestore = false) {
     langSelect.value = model.getLanguageId();
     currentFile = filename;
     updateTabs();
+    saveEditorState();
   }
 }
 
