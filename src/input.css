@@ -217,3 +217,7 @@ html {
   background-color: #222;
   z-index: 12;
 }
+
+.dirty-indicator {
+  margin-left: 2px; /* 調整したい値 */
+}

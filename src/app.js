@@ -5,6 +5,7 @@ const fileHandles = {};
 const dirtyFlags = {};
 const fileExtensions = {};
 const fileViewStates = {}; // ここは依然としてグローバルな参照用オブジェクト
+const markerCounts = {}; // { filename: { errors: 0, warnings: 0 } }
 let Openedfolders = [];
 
 // 言語拡張子マップ
@@ -100,17 +101,6 @@ tabBar.style.overflowX = "auto";
 tabBar.style.whiteSpace = "nowrap";
 tabBar.style.position = "relative";
 document.body.insertBefore(tabBar, document.getElementById("editor"));
-const tabDropIndicator = document.createElement("div");
-tabDropIndicator.id = "tabDropIndicator";
-tabDropIndicator.style.position = "absolute";
-tabDropIndicator.style.width = "2px";
-tabDropIndicator.style.backgroundColor = "#007bff";
-tabDropIndicator.style.height = "32px";
-tabDropIndicator.style.top = "6";
-tabDropIndicator.style.display = "none"; // ←重要：初期状態は非表示
-tabDropIndicator.style.zIndex = "1000";
-
-tabBar.appendChild(tabDropIndicator);
 
 tabBar.addEventListener("wheel", (e) => {
   if (e.deltaY !== 0) {
@@ -133,6 +123,24 @@ tabBar.addEventListener("wheel", (e) => {
   }
 });
 
+monaco.editor.onDidChangeMarkers(() => {
+  for (const filename in fileModels) {
+    const model = fileModels[filename];
+    if (!model) continue;
+
+    const markers = monaco.editor.getModelMarkers({ resource: model.uri });
+    const errors = markers.filter(
+      (m) => m.severity === monaco.MarkerSeverity.Error
+    ).length;
+    const warnings = markers.filter(
+      (m) => m.severity === monaco.MarkerSeverity.Warning
+    ).length;
+
+    markerCounts[filename] = { errors, warnings };
+  }
+  updateTabs(); // 更新
+});
+
 // タブ追加・更新
 function addTab(filename) {
   const tab = document.createElement("div");
@@ -148,7 +156,29 @@ function addTab(filename) {
   tab.setAttribute("draggable", "true");
 
   const title = document.createElement("span");
-  title.textContent = dirtyFlags[filename] ? `${filename} *` : filename;
+
+  // ファイル名部分
+  let displayName = filename;
+
+  // 編集中（dirty）ならアスタリスクを追加
+  if (dirtyFlags[filename]) {
+    displayName += `<span class="dirty-indicator">*</span>`;
+  }
+
+  // エラー・警告を表示
+  const counts = markerCounts[filename];
+  if (counts && (counts.errors > 0 || counts.warnings > 0)) {
+    displayName += "";
+
+    if (counts.errors > 0) {
+      displayName += `<span style="color:#ff4d4f; font-size:14px"> ${counts.errors}</span>`;
+    }
+    if (counts.warnings > 0) {
+      displayName += ` <span style="color:#fadb14;">${counts.warnings}</span>`;
+    }
+  }
+
+  title.innerHTML = displayName; // ← textContent → innerHTML に変更
   tab.appendChild(title);
 
   const closeBtn = document.createElement("span");
@@ -157,7 +187,6 @@ function addTab(filename) {
   closeBtn.style.fontSize = "16px";
   closeBtn.style.padding = "3px";
   closeBtn.style.lineHeight = "1";
-  closeBtn.style.marginLeft = "2px";
   closeBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     closeFile(filename);
@@ -194,45 +223,29 @@ function addTab(filename) {
 
   tab.addEventListener("dragover", (e) => {
     e.preventDefault();
-    const draggingTab = document.querySelector(".dragging");
-    if (!draggingTab || draggingTab === e.currentTarget) {
-      tabDropIndicator.style.display = "none";
-      return;
-    }
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    // インジケータの位置を計算
-    const tabBarRect = tabBar.getBoundingClientRect();
-    const indicatorX = rect.right; // 常にターゲットのタブの右端に表示
-
-    // インジケータが存在することを確認
-    const indicator = document.getElementById("tabDropIndicator");
-    if (indicator) {
-      indicator.style.left = `${indicatorX - tabBarRect.left}px`;
-      indicator.style.display = "block";
+    if (e.dataTransfer != e.currentTarget) {
+      e.currentTarget.style.border = "2px solid #007bff";
+      e.currentTarget.style.padding = "2px 2px 2px 6px";
     }
   });
 
   tab.addEventListener("dragleave", (e) => {
     if (!e.currentTarget.contains(e.relatedTarget)) {
-      const indicator = document.getElementById("tabDropIndicator");
-      if (indicator) {
-        indicator.style.display = "none";
-      }
+      e.currentTarget.style.border = "";
+      e.currentTarget.style.padding = "4px 4px 4px 8px";
     }
   });
 
   tab.addEventListener("dragend", (e) => {
     e.currentTarget.classList.remove("dragging");
-    const indicator = document.getElementById("tabDropIndicator");
-    if (indicator) {
-      indicator.style.display = "none";
-    }
+    e.currentTarget.style.border = "";
+    e.currentTarget.style.padding = "4px 4px 4px 8px";
   });
 
   tab.addEventListener("drop", (e) => {
     e.preventDefault();
-    tabDropIndicator.style.display = "none"; // ←確実に非表示
+    e.currentTarget.style.border = "";
+    e.currentTarget.style.padding = "4px 4px 4px 8px";
 
     const draggedFilename = e.dataTransfer.getData("text/plain");
     const targetFilename = e.currentTarget.dataset.filename;
@@ -248,16 +261,13 @@ function addTab(filename) {
       const newTabOrder = [...currentTabOrder];
       const [removed] = newTabOrder.splice(draggedIndex, 1);
 
-      // 常に目的のタブの右側に挿入
-      const insertIndex = targetIndex + 1;
+      let insertIndex = targetIndex;
+      insertIndex = targetIndex;
       newTabOrder.splice(insertIndex, 0, removed);
 
       reorderTabData(newTabOrder);
     }
   });
-
-  // 6. デバッグ用：インジケータの存在確認
-
   tabBar.appendChild(tab);
 }
 
