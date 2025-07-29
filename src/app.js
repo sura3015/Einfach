@@ -916,6 +916,10 @@ function handleKeyEvent(event) {
     event.preventDefault();
     toggleBtn.click();
   }
+  if(isCtrlOrCmd && event.key === "f"){
+    event.preventDefault();
+    openFolderBtn.click();
+  }
 }
 
 document.addEventListener("keydown", handleKeyEvent);
