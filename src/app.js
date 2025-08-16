@@ -308,7 +308,7 @@ function reorderTabData(newTabOrder) {
 }
 
 function updateTabs() {
-  // 既存のタブのみを削除（インジケータは残す）
+  // 既存のタブのみを削除（インジケータは残す）rename
   const tabs = tabBar.querySelectorAll(".tab");
   tabs.forEach((tab) => tab.remove());
   Object.keys(fileModels).forEach(addTab);
@@ -814,6 +814,16 @@ toggleBtn.addEventListener("click", () => {
   }, 310);
 });
 
+function folderclose() {
+  const explorer = document.getElementById("fileExplorer");
+  explorer.innerHTML = ""; // ファイルエクスプローラの内容をクリア
+
+  // フォルダの履歴をリセット
+  dirHistory = [];
+  backBtn.disabled = true; // 戻るボタンを無効化
+  backBtn.style.color = "rgb(121, 121, 121)";
+}
+
 contextMenu.addEventListener("click", (e) => {
   const action = e.target.dataset.action;
   const targetFile = contextMenu.dataset.targetFile;
@@ -833,6 +843,11 @@ contextMenu.addEventListener("click", (e) => {
 
       // 新しいファイル名でモデルを作成し、古い情報をコピー
       const newModel = monaco.editor.createModel(oldContent, newLang);
+      newModel.onDidChangeContent(() => {
+        dirtyFlags[newFilename] = true;
+        updateTabs();
+        saveEditorState();
+      });
       fileModels[newFilename] = newModel;
       fileHandles[newFilename] = fileHandles[targetFile];
       dirtyFlags[newFilename] = dirtyFlags[targetFile];
@@ -916,7 +931,7 @@ function handleKeyEvent(event) {
     event.preventDefault();
     toggleBtn.click();
   }
-  if(isCtrlOrCmd && event.key === "f"){
+  if (isCtrlOrCmd && event.key === "f") {
     event.preventDefault();
     openFolderBtn.click();
   }
