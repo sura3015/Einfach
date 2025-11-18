@@ -140,9 +140,7 @@
                 theme: "vs-dark",
                 automaticLayout: true
             });
-            // Monacoが初期化されたら、app.jsを動的ロード
             const script = document.createElement('script');
-            // script.type = 'module'; // app.jsがESモジュールでなければこの行は削除してください
             script.src = 'src/app.js';
             document.body.appendChild(script);
         });

@@ -4,11 +4,10 @@ const fileModels = {};
 const fileHandles = {};
 const dirtyFlags = {};
 const fileExtensions = {};
-const fileViewStates = {}; // ここは依然としてグローバルな参照用オブジェクト
-const markerCounts = {}; // { filename: { errors: 0, warnings: 0 } }
+const fileViewStates = {};
+const markerCounts = {};
 let Openedfolders = [];
 
-// 言語拡張子マップ
 const langExtMap = {
   javascript: "js",
   python: "py",
@@ -35,7 +34,6 @@ const langExtMap = {
   plaintext: "txt",
 };
 
-// 言語判定cnso
 function getLanguageFromExtension(filename) {
   const ext = filename.split(".").pop().toLowerCase();
   const map = {
@@ -79,7 +77,6 @@ function getLanguageFromExtension(filename) {
   return map[ext] || "plaintext";
 }
 
-// Monacoテーマ
 let currentTheme = localStorage.getItem("editorTheme") || "vs-dark";
 function setEditorTheme(theme) {
   monaco.editor.setTheme(theme);
@@ -92,7 +89,6 @@ modeToggleBtn.addEventListener("click", () => {
   setEditorTheme(newTheme);
 });
 
-// タブバー
 const tabBar = document.getElementById("tabBar");
 tabBar.style.display = "flex";
 tabBar.style.backgroundColor = "#333";
@@ -138,10 +134,9 @@ monaco.editor.onDidChangeMarkers(() => {
 
     markerCounts[filename] = { errors, warnings };
   }
-  updateTabs(); // 更新
+  updateTabs();
 });
 
-// タブ追加・更新
 function addTab(filename) {
   const tab = document.createElement("div");
   tab.className = "tab";
@@ -152,20 +147,15 @@ function addTab(filename) {
   tab.style.alignItems = "center";
   tab.setAttribute("data-filename", filename);
 
-  // Make tabs draggable
   tab.setAttribute("draggable", "true");
 
   const title = document.createElement("span");
-
-  // ファイル名部分
   let displayName = filename;
 
-  // 編集中（dirty）ならアスタリスクを追加
   if (dirtyFlags[filename]) {
     displayName += `<span class="dirty-indicator">*</span>`;
   }
 
-  // エラー・警告を表示
   const counts = markerCounts[filename];
   if (counts && (counts.errors > 0 || counts.warnings > 0)) {
     displayName += "";
@@ -178,7 +168,7 @@ function addTab(filename) {
     }
   }
 
-  title.innerHTML = displayName; // ← textContent → innerHTML に変更
+  title.innerHTML = displayName;
   tab.appendChild(title);
 
   const closeBtn = document.createElement("span");
@@ -195,7 +185,6 @@ function addTab(filename) {
 
   tab.addEventListener("click", () => switchToFile(filename));
 
-  // 右クリックイベントリスナー
   tab.addEventListener("contextmenu", (e) => {
     e.preventDefault();
 
@@ -206,16 +195,13 @@ function addTab(filename) {
     contextMenu.dataset.targetFile = filename;
   });
 
-  // 中クリックイベントリスナーを追加
   tab.addEventListener("mouseup", (e) => {
     if (e.button === 1) {
-      // マウスの中ボタン（ホイールボタン）
       e.preventDefault();
       closeFile(filename);
     }
   });
 
-  // Drag and Drop Event Listeners
   tab.addEventListener("dragstart", (e) => {
     e.dataTransfer.setData("text/plain", filename);
     e.currentTarget.classList.add("dragging");
@@ -308,15 +294,12 @@ function reorderTabData(newTabOrder) {
 }
 
 function updateTabs() {
-  // 既存のタブのみを削除（インジケータは残す）rename
   const tabs = tabBar.querySelectorAll(".tab");
   tabs.forEach((tab) => tab.remove());
   Object.keys(fileModels).forEach(addTab);
 }
 
-// モデル切り替え
 function switchToFile(filename, skipViewRestore = false) {
-  // 現在のファイルの状態を保存
   if (currentFile && fileModels[currentFile] && window.editor) {
     fileViewStates[currentFile] = window.editor.saveViewState();
   }
@@ -326,10 +309,8 @@ function switchToFile(filename, skipViewRestore = false) {
     window.editor.setModel(model);
 
     if (!skipViewRestore && fileViewStates[filename]) {
-      // ビュー復元
       window.editor.restoreViewState(fileViewStates[filename]);
     } else {
-      // ビューリセット（1行目）
       window.editor.setScrollPosition({ scrollTop: 0, scrollLeft: 0 });
       window.editor.setPosition({ lineNumber: 1, column: 1 });
     }
@@ -343,11 +324,9 @@ function switchToFile(filename, skipViewRestore = false) {
   }
 }
 
-// モデル作成共通
 const fileHandleUriMap = new Map();
 let nextUriId = 0;
 
-// ここが変更点: initialViewState を引数に追加
 function createModel(
   content,
   filename,
@@ -377,11 +356,10 @@ function createModel(
 
   const model = monaco.editor.createModel(content, lang, modelUri);
 
-  fileModels[filename] = model; // filenameをキーとしてモデルを保存
-  fileHandles[filename] = fileHandle; // fileHandleを関連付ける
+  fileModels[filename] = model;
+  fileHandles[filename] = fileHandle;
   dirtyFlags[filename] = false;
 
-  // ここが変更点: initialViewState があればそれを設定、なければ undefined のまま
   fileViewStates[filename] = initialViewState;
 
   const ext = filename.split(".").pop().toLowerCase();
@@ -396,7 +374,6 @@ function createModel(
 }
 
 function saveEditorState() {
-  // 現在アクティブなファイルの状態も保存対象に含める
   if (currentFile && fileModels[currentFile]) {
     fileViewStates[currentFile] = window.editor.saveViewState();
   }
@@ -409,13 +386,12 @@ function saveEditorState() {
       dirty: dirtyFlags[name],
     })),
     currentFile,
-    viewStates: fileViewStates, // 表示状態も保存する
+    viewStates: fileViewStates,
   };
   localStorage.setItem("editorState", JSON.stringify(state));
 }
 
 let OpenedfolderMessage = false;
-// 復元
 async function loadEditorState() {
   const newWidth = localStorage.getItem("newWidth");
   explorerContainer.style.width = `${newWidth}px`;
@@ -426,7 +402,6 @@ async function loadEditorState() {
   const state = JSON.parse(stateStr);
 
   state.files.forEach((file) => {
-    // ここが変更点: state.viewStates から該当するビュー状態を渡す
     const initialViewState = state.viewStates
       ? state.viewStates[file.name]
       : undefined;
@@ -442,19 +417,16 @@ async function loadEditorState() {
   if (state.currentFile && fileModels[state.currentFile]) {
     switchToFile(state.currentFile, false);
   } else if (Object.keys(fileModels).length > 0) {
-    // currentFileがない場合は最初のファイルに切り替え
     switchToFile(Object.keys(fileModels)[0]);
   }
 
   updateTabs();
 
-  // 追加の処理: Monaco Editorのレイアウトを強制的に再計算
   if (window.editor) {
     window.editor.layout();
   }
 
   Openedfolders = JSON.parse(localStorage.getItem("openedFolders")) || [];
-  // フォルダ履歴復元（ユーザーに再選択してもらう）
   if (Openedfolders.length > 0) {
     showMessage(
       `前回開いたフォルダは"${Openedfolders.join(",")}"です`,
@@ -464,14 +436,12 @@ async function loadEditorState() {
     OpenedfolderMessage = true;
   }
 }
-// 新規ファイル
 newFileBtn.addEventListener("click", () => {
   const suggestedName = `untitled.js`;
   const filename = prompt("新規ファイル名を入力", suggestedName);
   if (filename) {
-    const uniqueFilename = getUniqueFilename(filename); // これはタブ表示用
+    const uniqueFilename = getUniqueFilename(filename);
     const lang = getLanguageFromExtension(uniqueFilename);
-    // initialViewState は渡されないので undefined になる
     createModel("", uniqueFilename, lang, null);
     currentFile = uniqueFilename;
     switchToFile(uniqueFilename);
@@ -480,7 +450,6 @@ newFileBtn.addEventListener("click", () => {
   }
 });
 
-// 開く
 function getUniqueFilename(filename) {
   let uniqueName = filename;
   let counter = 1;
@@ -498,30 +467,24 @@ openBtn.addEventListener("click", async () => {
   const file = await fileHandle.getFile();
   const contents = await file.text();
   const originalName = file.name;
-  const uniqueName = getUniqueFilename(originalName); // この uniqueName はタブ表示用
+  const uniqueName = getUniqueFilename(originalName);
   const lang = getLanguageFromExtension(originalName);
-  // initialViewState は渡されないので undefined になる
   const model = createModel(contents, uniqueName, lang, fileHandle);
-  // fileHandles[uniqueName] は createModel 内で設定されるので不要になるが、
-  // 既存ロジックとの互換性のため残すか、createModel内で一元管理するか検討
-  fileHandles[uniqueName] = fileHandle; // この行は createModel 内で処理するべきか要検討
+  fileHandles[uniqueName] = fileHandle;
   currentFile = uniqueName;
   switchToFile(uniqueName, true);
   updateTabs();
   saveEditorState();
 });
 
-// フォルダ選択ボタンを追加
 const openFolderBtn = document.getElementById("openFolderBtn");
-// フォルダからファイルをまとめて開く
 openFolderBtn.addEventListener("click", async () => {
   try {
     const dirHandle = await window.showDirectoryPicker();
     await showFileExplorer(dirHandle);
     saveEditorState();
-    dirHistory = [dirHandle]; // 履歴を更新
+    dirHistory = [dirHandle];
     backBtn.style.color = "rgb(121, 121, 121)";
-    //開いたフォルダを記録
     if (OpenedfolderMessage) {
       Openedfolders = [];
       OpenedfolderMessage = false;
@@ -536,7 +499,6 @@ openFolderBtn.addEventListener("click", async () => {
   }
 });
 
-// 保存
 saveBtn.addEventListener("click", async () => {
   if (!currentFile)
     return showMessage(
@@ -549,7 +511,6 @@ saveBtn.addEventListener("click", async () => {
 
   try {
     if (!handle) {
-      // 🌟 上書き保存メッセージを表示
       showMessage(
         `"${currentFile}" は自動復元、新規作成されたファイルです。保存先を指定して上書きや保存をしてください。`,
         6500,
@@ -588,7 +549,6 @@ saveBtn.addEventListener("click", async () => {
   }
 });
 
-// タブ閉じる
 function closeFile(filename) {
   const model = fileModels[filename];
   if (model) model.dispose();
@@ -596,7 +556,7 @@ function closeFile(filename) {
   delete fileHandles[filename];
   delete dirtyFlags[filename];
   delete fileExtensions[filename];
-  delete fileViewStates[filename]; // ここでビュー状態も削除
+  delete fileViewStates[filename];
   if (currentFile === filename) {
     currentFile = Object.keys(fileModels)[0] || null;
     if (currentFile) switchToFile(currentFile);
@@ -606,9 +566,7 @@ function closeFile(filename) {
   saveEditorState();
 }
 
-// メッセージ表示
 function showMessage(msg, duration = 2000, type = "info") {
-  // Material Iconsの名前設定
   const icons = {
     info: "info",
     success: "check_circle",
@@ -625,7 +583,7 @@ function showMessage(msg, duration = 2000, type = "info") {
     message = document.createElement("div");
     message.id = "saveMessage";
     message.style.position = "fixed";
-    message.style.bottom = "-100px"; // 初期位置
+    message.style.bottom = "-100px";
     message.style.left = "20px";
     message.style.backgroundColor = bgColor;
     message.style.color = "#fff";
@@ -646,18 +604,15 @@ function showMessage(msg, duration = 2000, type = "info") {
     <span>${msg}</span>
   `;
 
-  // スライドイン
   setTimeout(() => {
     message.style.bottom = "20px";
   }, 10);
-  // スライドアウト
   setTimeout(() => {
     message.style.bottom = "-100px";
     setTimeout(() => message.remove(), 10000);
   }, duration);
 }
 
-// 言語変更
 langSelect.addEventListener("change", (e) => {
   const lang = e.target.value;
   if (currentFile) {
@@ -668,7 +623,7 @@ langSelect.addEventListener("change", (e) => {
   }
 });
 
-let dirHistory = []; // ディレクトリ履歴
+let dirHistory = [];
 
 const backBtn = document.getElementById("backExplorerBtn");
 backBtn.onclick = async () => {
@@ -685,7 +640,7 @@ function hideBackExplorerBtn() {
 function showBackExplorerBtn() {
   document.getElementById("backExplorerBtn").style.display = "flex";
 }
-// showFileExplorer関数内
+
 async function showFileExplorer(dirHandle) {
   const explorer = document.getElementById("fileExplorer");
   explorer.innerHTML = "";
@@ -699,11 +654,10 @@ async function showFileExplorer(dirHandle) {
   folderNameDiv.style.padding = "8px";
   folderNameDiv.style.borderLeft = "2.5px solid #365668";
   explorer.appendChild(folderNameDiv);
-  // 履歴に追加
   if (!dirHistory.length || dirHistory[dirHistory.length - 1] !== dirHandle) {
     dirHistory.push(dirHandle);
   }
-  // 戻るボタンの有効/無効切り替え
+
   backBtn.disabled = dirHistory.length <= 1;
   backBtn.style.color =
     dirHistory.length <= 1 ? "rgb(121, 121, 121)" : "#ffffff";
@@ -714,22 +668,21 @@ async function showFileExplorer(dirHandle) {
     item.id = "explorer-item";
     item.className = "explorer-item";
     item.addEventListener("click", () => {
-      // 他の選択を解除
       document
         .querySelectorAll(".explorer-item")
         .forEach((i) => i.classList.remove("selected"));
-      // 現在のアイテムを選択
+
       item.classList.add("selected");
     });
     if (handle.kind === "file") {
       item.onclick = async () => {
         const file = await handle.getFile();
         const contents = await file.text();
-        const uniqueName = getUniqueFilename(file.name); // この uniqueName はタブ表示用
+        const uniqueName = getUniqueFilename(file.name);
         const lang = getLanguageFromExtension(file.name);
-        // createModel に handle (fileHandle) を渡す (initialViewStateはundefinedになる)
+
         const model = createModel(contents, uniqueName, lang, handle);
-        fileHandles[uniqueName] = handle; // この行もcreateModel内で処理するべきか検討
+        fileHandles[uniqueName] = handle;
         currentFile = uniqueName;
         switchToFile(uniqueName, true);
         updateTabs();
@@ -738,7 +691,7 @@ async function showFileExplorer(dirHandle) {
     } else if (handle.kind === "directory") {
       item.style.fontWeight = "bold";
       item.onclick = async () => {
-        await showFileExplorer(handle); // サブフォルダ表示
+        await showFileExplorer(handle);
       };
     }
     explorer.appendChild(item);
@@ -746,20 +699,20 @@ async function showFileExplorer(dirHandle) {
 }
 
 const explorerContainer = document.getElementById("fileExplorerContainer");
-const fileExplorer = document.getElementById("fileExplorer"); // fileExplorerも取得
+const fileExplorer = document.getElementById("fileExplorer");
 const toggleBtn = document.getElementById("toggleExplorerBtn");
-const editor = document.getElementById("editor"); // editorも取得
+const editor = document.getElementById("editor");
 
 const resizer = document.getElementById("resizer");
 let isResizing = false;
-let lastExplorerWidth = 230; // 最後に開いていた時の幅を記憶する変数 (初期値: 220px)
+let lastExplorerWidth = 230;
 
 resizer.addEventListener("mousedown", (e) => {
   isResizing = true;
   document.body.style.cursor = "col-resize";
   document.body.style.userSelect = "none";
-  explorerContainer.style.transition = "none"; // リサイズ中はアニメーションを無効化
-  e.preventDefault(); // デフォルトのドラッグ動作を抑制
+  explorerContainer.style.transition = "none";
+  e.preventDefault();
   const mouseMoveHandler = (e) => {
     if (!isResizing) return;
     let newWidth = e.clientX;
@@ -792,15 +745,12 @@ toggleBtn.addEventListener("click", () => {
   const currentWidth = explorerContainer.offsetWidth;
   explorerContainer.classList.toggle("closed");
   if (currentWidth > 0) {
-    // 開いている状態 -> 閉じる
-    lastExplorerWidth = currentWidth; // 現在の幅を記憶
+    lastExplorerWidth = currentWidth;
     explorerContainer.style.width = "0px";
     editor.style.left = "0px";
     editor.style.width = "100vw";
     hideBackExplorerBtn();
   } else {
-    // 閉じている状態 -> 開く
-    // 記憶していた幅に戻す（0の場合はデフォルト値220px）
     const restoreWidth = lastExplorerWidth > 0 ? lastExplorerWidth : 220;
     explorerContainer.style.width = `${restoreWidth}px`;
     editor.style.left = `${restoreWidth}px`;
@@ -808,7 +758,6 @@ toggleBtn.addEventListener("click", () => {
     showBackExplorerBtn();
   }
 
-  // アニメーション完了後にエディタのレイアウトを更新
   setTimeout(() => {
     window.editor.layout();
   }, 310);
@@ -816,11 +765,10 @@ toggleBtn.addEventListener("click", () => {
 
 function folderclose() {
   const explorer = document.getElementById("fileExplorer");
-  explorer.innerHTML = ""; // ファイルエクスプローラの内容をクリア
+  explorer.innerHTML = "";
 
-  // フォルダの履歴をリセット
   dirHistory = [];
-  backBtn.disabled = true; // 戻るボタンを無効化
+  backBtn.disabled = true;
   backBtn.style.color = "rgb(121, 121, 121)";
 }
 
@@ -828,9 +776,9 @@ contextMenu.addEventListener("click", (e) => {
   const action = e.target.dataset.action;
   const targetFile = contextMenu.dataset.targetFile;
 
-  contextMenu.style.display = "none"; // メニューを非表示にする
+  contextMenu.style.display = "none";
 
-  if (!targetFile && action !== "closeAll") return; // closeAllの場合はtargetFileがなくても良い
+  if (!targetFile && action !== "closeAll") return;
 
   if (action === "close") {
     closeFile(targetFile);
@@ -841,7 +789,6 @@ contextMenu.addEventListener("click", (e) => {
       const newLang = getLanguageFromExtension(newFilename);
       const oldContent = oldModel.getValue();
 
-      // 新しいファイル名でモデルを作成し、古い情報をコピー
       const newModel = monaco.editor.createModel(oldContent, newLang);
       newModel.onDidChangeContent(() => {
         dirtyFlags[newFilename] = true;
@@ -852,14 +799,14 @@ contextMenu.addEventListener("click", (e) => {
       fileHandles[newFilename] = fileHandles[targetFile];
       dirtyFlags[newFilename] = dirtyFlags[targetFile];
       fileExtensions[newFilename] = newFilename.split(".").pop().toLowerCase();
-      fileViewStates[newFilename] = fileViewStates[targetFile]; // ビュー状態もコピー
+      fileViewStates[newFilename] = fileViewStates[targetFile];
 
       oldModel.dispose();
       delete fileModels[targetFile];
       delete fileHandles[targetFile];
       delete dirtyFlags[targetFile];
       delete fileExtensions[targetFile];
-      delete fileViewStates[targetFile]; // 古いビュー状態を削除
+      delete fileViewStates[targetFile];
 
       if (currentFile === targetFile) {
         currentFile = newFilename;
@@ -869,28 +816,23 @@ contextMenu.addEventListener("click", (e) => {
       saveEditorState();
     }
   } else if (action === "closeAll") {
-    // すべてのファイルを閉じる
     Object.keys(fileModels).forEach((filename) => {
       closeFile(filename);
     });
-    // すべて閉じたらエディタをクリア
     window.editor.setValue("");
     currentFile = null;
     updateTabs();
     saveEditorState();
   } else if (action === "closeOthers") {
-    // このファイル以外を閉じる
     const filesToClose = Object.keys(fileModels).filter(
       (filename) => filename !== targetFile
     );
     filesToClose.forEach((filename) => {
       closeFile(filename);
     });
-    // 対象ファイルが残っていればそれに切り替える（既に切り替わっているはずだが念のため）
     if (currentFile !== targetFile && fileModels[targetFile]) {
       switchToFile(targetFile);
     } else if (!fileModels[targetFile]) {
-      // もし対象ファイルがなぜか存在しない場合
       currentFile = Object.keys(fileModels)[0] || null;
       if (currentFile) switchToFile(currentFile);
       else window.editor.setValue("");
@@ -900,7 +842,6 @@ contextMenu.addEventListener("click", (e) => {
   }
 });
 
-// キーボードショートカットで保存
 function handleKeyEvent(event) {
   const isCtrlOrCmd = event.ctrlKey || event.metaKey;
   const isSKey = event.key === "s" || event.keyCode === 83;
@@ -924,7 +865,6 @@ function handleKeyEvent(event) {
     openFolderBtn.click();
   }
   if (isCtrlOrCmd && event.key === "e") {
-    // キーが押しっぱなしの場合は無視
     if (event.repeat) {
       return;
     }
@@ -938,9 +878,7 @@ function handleKeyEvent(event) {
 }
 
 document.addEventListener("keydown", handleKeyEvent);
-//document.addEventListener("keyup", handleKeyEvent);
 
-// 🎉 初期復元
 loadEditorState();
 if (Object.keys(fileModels).length === 0) {
   const sampleCode = `console.log("Hello, Einfach Code Editor!");`;

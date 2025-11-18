@@ -37,19 +37,16 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  // ナビゲーションリクエスト（HTMLページのリクエスト）の場合
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request).catch(() => {
-        // ネットワークエラーの場合、オフラインページを返す
         const baseUrlPath = getBaseUrlPath();
-        return caches.match(`${baseUrlPath}${OFFLINE_PAGE_NAME}`); // 正しいパスで取得
+        return caches.match(`${baseUrlPath}${OFFLINE_PAGE_NAME}`);
       })
     );
     return;
   }
 
-  // その他のリクエスト（CSS、JS、画像など）の場合
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
