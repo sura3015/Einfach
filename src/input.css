@@ -59,11 +59,43 @@ html {
 
 #editor {
   position: absolute;
-  left: 230px;
-  top: 111px;
-  width: calc(100vw - 220px);
-  height: calc(100vh - 111px);
+  height: 100%;
   transition: left 0.3s, width 0.3s;
+}
+
+#markdownPreviewContainer {
+  position: absolute;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  display: none;
+  border-left: 1px solid #444;
+}
+
+.markdown-body {
+  /* GitHub Markdown CSSが設定する幅やフォントを適用 */
+  box-sizing: border-box;
+  overflow: auto;
+  height: 100%;
+  min-width: 200px;
+  margin: 0 auto; /* 中央寄せ */
+  padding: 45px;
+  scrollbar-width: thin;
+}
+@media (max-width: 767px) {
+  .markdown-body {
+    padding: 15px;
+  }
+}
+
+.previewResizer {
+  position: absolute;
+  left: 50%;
+  width: 3px;
+  height: 100%;
+  cursor: col-resize;
+  background-color: transparent;
+  z-index: 9999;
 }
 
 #tabBar::-webkit-scrollbar {

@@ -7,7 +7,20 @@ const fileExtensions = {};
 const fileViewStates = {};
 const markerCounts = {};
 let Openedfolders = [];
-
+let savedEditorWidthPercent = 100;
+const markdownPreviewContainer = document.getElementById(
+  "markdownPreviewContainer"
+); // 新規追加
+const markdownPreview = document.getElementById("markdownPreview");
+const renderer = new marked.Renderer();
+marked.setOptions({
+  renderer: renderer,
+  gfm: true,
+  breaks: true,
+  smartLists: true,
+  smartypants: false,
+  sanitize: false,
+});
 const langExtMap = {
   javascript: "js",
   python: "py",
@@ -96,7 +109,7 @@ tabBar.style.padding = "4px";
 tabBar.style.overflowX = "auto";
 tabBar.style.whiteSpace = "nowrap";
 tabBar.style.position = "relative";
-document.body.insertBefore(tabBar, document.getElementById("editor"));
+document.body.insertBefore(tabBar, document.getElementById("editorWrapper"));
 
 tabBar.addEventListener("wheel", (e) => {
   if (e.deltaY !== 0) {
@@ -321,6 +334,7 @@ function switchToFile(filename, skipViewRestore = false) {
     currentFile = filename;
     updateTabs();
     saveEditorState();
+    updateMarkdownPreview();
   }
 }
 
@@ -369,6 +383,9 @@ function createModel(
     dirtyFlags[filename] = true;
     updateTabs();
     saveEditorState();
+    if (currentFile === filename) {
+      updateMarkdownPreview();
+    }
   });
   return model;
 }
@@ -395,8 +412,8 @@ let OpenedfolderMessage = false;
 async function loadEditorState() {
   const newWidth = localStorage.getItem("newWidth");
   explorerContainer.style.width = `${newWidth}px`;
-  editor.style.left = `${newWidth}px`;
-  editor.style.width = `calc(100vw - ${newWidth}px)`;
+  editorWrapper.style.left = `${newWidth}px`;
+  editorWrapper.style.width = `calc(100vw - ${newWidth}px)`;
   const stateStr = localStorage.getItem("editorState");
   if (!stateStr) return;
   const state = JSON.parse(stateStr);
@@ -457,7 +474,7 @@ function getUniqueFilename(filename) {
     counter++;
     const base = filename.replace(/\.[^/.]+$/, "");
     const ext = filename.split(".").pop();
-    uniqueName = `${base}${counter}.${ext}`;
+    uniqueName = `${base}(${counter}).${ext}`;
   }
   return uniqueName;
 }
@@ -618,7 +635,6 @@ langSelect.addEventListener("change", (e) => {
   if (currentFile) {
     const model = fileModels[currentFile];
     monaco.editor.setModelLanguage(model, lang);
-    console.log(`言語を${lang}に変更`);
     saveEditorState();
   }
 });
@@ -701,7 +717,7 @@ async function showFileExplorer(dirHandle) {
 const explorerContainer = document.getElementById("fileExplorerContainer");
 const fileExplorer = document.getElementById("fileExplorer");
 const toggleBtn = document.getElementById("toggleExplorerBtn");
-const editor = document.getElementById("editor");
+const editorWrapper = document.getElementById("editorWrapper");
 
 const resizer = document.getElementById("resizer");
 let isResizing = false;
@@ -721,8 +737,8 @@ resizer.addEventListener("mousedown", (e) => {
     if (newWidth > 600) newWidth = 600;
 
     explorerContainer.style.width = `${newWidth}px`;
-    editor.style.left = `${newWidth}px`;
-    editor.style.width = `calc(100vw - ${newWidth}px)`;
+    editorWrapper.style.left = `${newWidth}px`;
+    editorWrapper.style.width = `calc(100vw - ${newWidth}px)`;
     localStorage.setItem("newWidth", JSON.stringify(newWidth));
   };
 
@@ -747,14 +763,14 @@ toggleBtn.addEventListener("click", () => {
   if (currentWidth > 0) {
     lastExplorerWidth = currentWidth;
     explorerContainer.style.width = "0px";
-    editor.style.left = "0px";
-    editor.style.width = "100vw";
+    editorWrapper.style.left = "0px";
+    editorWrapper.style.width = "100vw";
     hideBackExplorerBtn();
   } else {
     const restoreWidth = lastExplorerWidth > 0 ? lastExplorerWidth : 220;
     explorerContainer.style.width = `${restoreWidth}px`;
-    editor.style.left = `${restoreWidth}px`;
-    editor.style.width = `calc(100vw - ${restoreWidth}px)`;
+    editorWrapper.style.left = `${restoreWidth}px`;
+    editorWrapper.style.width = `calc(100vw - ${restoreWidth}px)`;
     showBackExplorerBtn();
   }
 
@@ -783,9 +799,10 @@ contextMenu.addEventListener("click", (e) => {
   if (action === "close") {
     closeFile(targetFile);
   } else if (action === "rename") {
-    const newFilename = prompt("新しいファイル名を入力", targetFile);
+    let newFilename = prompt("新しいファイル名を入力", targetFile);
     if (newFilename && newFilename !== targetFile) {
       const oldModel = fileModels[targetFile];
+      newFilename = getUniqueFilename(newFilename);
       const newLang = getLanguageFromExtension(newFilename);
       const oldContent = oldModel.getValue();
 
@@ -814,6 +831,7 @@ contextMenu.addEventListener("click", (e) => {
       }
       updateTabs();
       saveEditorState();
+      updateMarkdownPreview();
     }
   } else if (action === "closeAll") {
     Object.keys(fileModels).forEach((filename) => {
@@ -823,6 +841,7 @@ contextMenu.addEventListener("click", (e) => {
     currentFile = null;
     updateTabs();
     saveEditorState();
+    updateMarkdownPreview();
   } else if (action === "closeOthers") {
     const filesToClose = Object.keys(fileModels).filter(
       (filename) => filename !== targetFile
@@ -839,6 +858,7 @@ contextMenu.addEventListener("click", (e) => {
     }
     updateTabs();
     saveEditorState();
+    updateMarkdownPreview();
   }
 });
 
@@ -889,4 +909,109 @@ if (Object.keys(fileModels).length === 0) {
   switchToFile(filename);
   updateTabs();
   saveEditorState();
+}
+if (currentFile) {
+  updateMarkdownPreview();
+}
+
+function updateMarkdownPreview() {
+  const model = currentFile ? fileModels[currentFile] : null;
+  const currentLang = model ? model.getLanguageId() : null;
+
+  if (currentFile && model && currentLang === "markdown") {
+    const markdownText = model.getValue();
+    markdownPreview.innerHTML = marked.parse(markdownText);
+    showMarkdownPreview();
+  } else {
+    hideMarkdownPreview();
+  }
+}
+
+function showMarkdownPreview() {
+  const previewResizer = document.getElementById("previewResizer");
+  const editor = document.getElementById("editor");
+
+  const targetWidth =
+    savedEditorWidthPercent < 100 ? savedEditorWidthPercent : 50;
+
+  markdownPreviewContainer.style.display = "block";
+  previewResizer.style.display = "block";
+
+  editor.style.width = `${targetWidth}%`;
+  previewResizer.style.left = `${targetWidth}%`;
+  markdownPreviewContainer.style.left = `${targetWidth}%`;
+  markdownPreviewContainer.style.width = `${100 - targetWidth}%`;
+
+  window.editor.layout();
+}
+
+// app.js
+
+function hideMarkdownPreview() {
+  const previewResizer = document.getElementById("previewResizer");
+  const editor = document.getElementById("editor");
+
+  // 【修正/追加】プレビューが閉じる前に、現在のエディタ幅を savedEditorWidthPercent に保存する
+  if (markdownPreviewContainer.style.display === "block") {
+    const currentWidthStyle = editor.style.width;
+    if (currentWidthStyle && currentWidthStyle.endsWith("%")) {
+      savedEditorWidthPercent = parseFloat(currentWidthStyle);
+    }
+  }
+
+  markdownPreviewContainer.style.display = "none";
+  previewResizer.style.display = "none";
+
+  // エディタをフル幅に戻す
+  editor.style.width = "100%";
+
+  // プレビュー関連のleft/widthをクリア（念のため）
+  markdownPreviewContainer.style.left = "";
+  markdownPreviewContainer.style.width = "";
+  previewResizer.style.left = "";
+
+  window.editor.layout(); // レイアウトを更新
+}
+
+let isPreviewResizing = false;
+let lastEditorWidth = 0;
+
+previewResizer.addEventListener("mousedown", (e) => {
+  if (markdownPreviewContainer.style.display === "block") {
+    isPreviewResizing = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", handlePreviewMouseMove);
+    document.addEventListener("mouseup", handlePreviewMouseUp);
+  }
+});
+
+function handlePreviewMouseMove(e) {
+  const editor = document.getElementById("editor");
+  const previewResizer = document.getElementById("previewResizer");
+  if (!isPreviewResizing) return;
+
+  const wrapperWidth = editorWrapper.offsetWidth; // ラッパーの全幅
+  const wrapperLeft = editorWrapper.getBoundingClientRect().left;
+
+  let newPositionX = e.clientX - wrapperLeft;
+  if (newPositionX <= 0) {
+    newPositionX = 0;
+  }
+
+  const newWidthPercent = (newPositionX / wrapperWidth) * 100;
+  editor.style.width = `${newWidthPercent}%`;
+  previewResizer.style.left = `${newWidthPercent}%`;
+
+  markdownPreviewContainer.style.left = `${newWidthPercent}%`;
+  markdownPreviewContainer.style.width = `${100 - newWidthPercent}%`;
+  savedEditorWidthPercent = newWidthPercent;
+}
+
+function handlePreviewMouseUp() {
+  isPreviewResizing = false;
+  document.body.style.cursor = "default";
+  document.body.style.userSelect = "auto";
+  document.removeEventListener("mousemove", handlePreviewMouseMove);
+  document.removeEventListener("mouseup", handlePreviewMouseUp);
 }

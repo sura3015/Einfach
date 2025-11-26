@@ -7,6 +7,7 @@
     <title>Einfach Code Editor</title>
     <link rel="stylesheet" href="src/input.css">
     <link rel="stylesheet" href="src/output.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.css">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon-512.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -81,7 +82,15 @@
             </span>
         </div>
     </header>
-    <div id="editor"></div>
+    <div id="editorWrapper"
+        style="display:flex; position:absolute; left:230px; top:111px; height: calc(100vh - 111px); width: calc(100vw); transition: left 0.3s, width 0.3s;">
+        <div id="editor"></div>
+        <div id="previewResizer" class="previewResizer">
+        </div>
+        <div id="markdownPreviewContainer">
+            <div id="markdownPreview" class="markdown-body"></div>
+        </div>
+    </div>
     <div id="fileExplorerContainer"
         style="position:absolute; left:0; top:111px; height: calc(100vh - 156px); z-index:10; width: 230px; transition: width 0.2s ease;">
         <button id="backExplorerBtn" style="color: rgb(121, 121, 121);">
@@ -118,7 +127,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const serviceWorkerScript = '/Einfach/sw.js';
+                const serviceWorkerScript = './sw.js';
                 navigator.serviceWorker.register(serviceWorkerScript, { scope: '/Einfach/' })
                     .then(registration => {
                         console.log('Service Worker registered with scope:', registration.scope);
@@ -131,10 +140,10 @@
         }
 
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/vs/loader.js"></script>
     <script>
-        require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs" } });
+        require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/vs" } });
         require(["vs/editor/editor.main"], function () {
             window.editor = monaco.editor.create(document.getElementById("editor"), {
                 theme: "vs-dark",
