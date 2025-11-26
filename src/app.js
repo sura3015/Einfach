@@ -10,7 +10,7 @@ let Openedfolders = [];
 let savedEditorWidthPercent = 100;
 const markdownPreviewContainer = document.getElementById(
   "markdownPreviewContainer"
-); // 新規追加
+);
 const markdownPreview = document.getElementById("markdownPreview");
 const renderer = new marked.Renderer();
 marked.setOptions({
@@ -945,13 +945,10 @@ function showMarkdownPreview() {
   window.editor.layout();
 }
 
-// app.js
-
 function hideMarkdownPreview() {
   const previewResizer = document.getElementById("previewResizer");
   const editor = document.getElementById("editor");
 
-  // 【修正/追加】プレビューが閉じる前に、現在のエディタ幅を savedEditorWidthPercent に保存する
   if (markdownPreviewContainer.style.display === "block") {
     const currentWidthStyle = editor.style.width;
     if (currentWidthStyle && currentWidthStyle.endsWith("%")) {
@@ -962,15 +959,13 @@ function hideMarkdownPreview() {
   markdownPreviewContainer.style.display = "none";
   previewResizer.style.display = "none";
 
-  // エディタをフル幅に戻す
   editor.style.width = "100%";
 
-  // プレビュー関連のleft/widthをクリア（念のため）
   markdownPreviewContainer.style.left = "";
   markdownPreviewContainer.style.width = "";
   previewResizer.style.left = "";
 
-  window.editor.layout(); // レイアウトを更新
+  window.editor.layout();
 }
 
 let isPreviewResizing = false;
@@ -991,7 +986,7 @@ function handlePreviewMouseMove(e) {
   const previewResizer = document.getElementById("previewResizer");
   if (!isPreviewResizing) return;
 
-  const wrapperWidth = editorWrapper.offsetWidth; // ラッパーの全幅
+  const wrapperWidth = editorWrapper.offsetWidth;
   const wrapperLeft = editorWrapper.getBoundingClientRect().left;
 
   let newPositionX = e.clientX - wrapperLeft;
