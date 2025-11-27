@@ -636,6 +636,7 @@ langSelect.addEventListener("change", (e) => {
     const model = fileModels[currentFile];
     monaco.editor.setModelLanguage(model, lang);
     saveEditorState();
+    updateMarkdownPreview();
   }
 });
 
